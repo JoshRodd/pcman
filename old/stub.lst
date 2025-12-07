@@ -1,0 +1,56 @@
+     1                                  bits 16
+     2                                  
+     3                                  section .bootsect start=0
+     4                                  
+     5                                  org 0
+     6                                  ; disable interrupts
+     7 00000000 FA                      cli
+     8                                  ; place stack at 0000:0400h (top of IVT)
+     9 00000001 31C0                    xor ax,ax
+    10 00000003 BA0004                  mov dx,400h
+    11 00000006 8ED0                    mov ss,ax
+    12 00000008 89D4                    mov sp,dx
+    13                                  ; place mov ax,426dh; iret onto the stack
+    14                                  ; (will be at INT 0FFh)
+    15                                  ;mov es,ax
+    16                                  ;mov di,11h*4 ; int 11h vector
+    17                                  ;mov ax,0cf42h ; mov ax,42xxh
+    18                                  ;push ax
+    19                                  ;mov ax,6db8h ; ...6dh; iret
+    20                                  ;push ax
+    21                                  ;mov ax,sp
+    22                                  ;stosw
+    23                                  ;mov ax,cs
+    24                                  ;stosw
+    25                                  ; copy image to 50:0h
+    26 0000000A 8ED8                    mov ds,ax
+    27 0000000C E81E00                  call getoffset
+    28                                  offset_base:
+    29 0000000F B85000                  mov ax,50h
+    30 00000012 8EC0                    mov es,ax
+    31 00000014 31FF                    xor di,di
+    32 00000016 B92020                  mov cx,16448/2
+    33 00000019 F3A5                    rep movsw
+    34                                  ; default flags
+    35                                  ; (nv up di ng nz nz po nc)
+    36 0000001B B85001                  mov ax,150h
+    37 0000001E 8ED8                    mov ds,ax
+    38 00000020 B882F1                  mov ax,0f182h
+    39 00000023 50                      push ax
+    40 00000024 B85000                  mov ax,50h
+    41 00000027 50                      push ax
+    42 00000028 B81600                  mov ax,16h ; skip int11h code check
+    43 0000002B 50                      push ax
+    44 0000002C CF                      iret
+    45                                  
+    46                                  ; returns offset of image in a position
+    47                                  ; independent code manner
+    48                                  getoffset:
+    49 0000002D 5E                      pop si
+    50 0000002E 56                      push si
+    51 0000002F 83C631                  add si,image-offset_base
+    52 00000032 C3                      ret
+    53                                  
+    54 00000033 90<rep Dh>              align 16
+    55                                  
+    56                                  image equ $
