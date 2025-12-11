@@ -106,6 +106,28 @@ _BOOTSECT	segment	para public 'CODE'
 
 _bootstrap	proc	far
 
+		jmp	_boot_main
+		
+system_id		db	"IBM  3.3"
+bytes_per_sector	dw	512
+sectors_per_cluster	db	1
+reserved_sector_cnt	dw	1
+fat_copy_cnt		db	2
+root_dir_entries	db	64
+disk_sector_cnt		
+		
+
+00000000: eb34 9049 424d 2020 332e 3300 0201 0100  .4.IBM  3.3.....
+00000010: 0240 0040 01fe 0100 0800 0100 0000 0000  .@.@............
+00000020: 0000 0000 0000 0000 0000 0000 0000 0012  ................
+00000030: 0000 0000 0100 fa33 c08e d0bc 007c 1607  .......3.....|..
+00000040: bb78 0036 c537 1e56 1653 bf2b 7cb9 0b00  .x.6.7.V.S.+|...
+00000050: fcac 2680 3d00 7403 268a 05aa 8ac4 e2f1  ..&.=.t.&.......
+00000060: 061f 8947 02c7 072b 7cfb cd13 7267 a010  ...G...+|...rg..
+00000070: 7c98 f726 167c 0306 1c7c 0306 0e7c a33f  |..&.|...|...|.?
+00000080: 7ca3 377c b820 00f7 2611 7c8b 1e0b 7c03  |.7|. ..&.|...|.
+00000090: c348 f7f3 0106 377c bb00 05a1 3f7c e89f  .H....7|....?|..
+
 _boot_main:
 
 		; Install stack at 0060:0200 (00800 / 0050:0300)
@@ -14416,7 +14438,7 @@ _TRKS_5_13	segment	para public 'ZZZ'
 
 		; Rest of disk is F6 (division sign)
 		; 9 sectors
-l5a00		db	((13-5+1)*9*512) dup (0f6h)
+l5a00		db	(13-5+1)*9*512 dup (0f6h)
 
 _TRKS_5_13	ends
 
@@ -14426,7 +14448,7 @@ _TRKS_5_13	ends
 _TRKS14_27	segment	para public 'ZZZ'
 
 		; 14 sectors
-lfc00		db	((27-14+1)*9*512) dup (0f6h)
+lfc00		db	(27-14+1)*9*512 dup (0f6h)
 
 _TRKS14_27	ends
 
@@ -14437,7 +14459,7 @@ _TRKS28_39	segment	para public 'ZZZ'
 
 		; Rest of disk is F6 (division sign)
 		; 12 sectors
-l1f800		db	((39-28+1)*9*512) dup (0f6h)
+l1f800		db	(39-28+1)*9*512 dup (0f6h)
 
 _TRKS28_39	ends
 

@@ -6,8 +6,7 @@ uasm -Flpcman.lst -Fdpcman.def -bin -Fopcman.bin -Fspcman.sym pcman.asm -Zg 2>&1
 size1=$(xz -d < pcman.img.xz | wc -c | tr -dc '0-9\n') || exit
 size2=$(wc -c < pcman.bin | tr -dc '0-9\n') || exit
 if [[ $size2 -gt $size1 ]]; then
-	echo Image is too big: $size2 \> $size2
-	exit 1
+	echo Image is too big: $size2 \> $size1
 fi
 size=$size1
 output=$(cmp pcman.bin <(xz -d < pcman.img.xz | dd bs=1 count=$size status=none))
@@ -16,5 +15,5 @@ if [[ $rc -ne 0 ]]; then
 	index=$(printf "%s\n" "$output" | sed -E s'/^.*char ([0-9]+),.*$/\1/')
 	index=$[$index - 1]
 	printf "Error at: 0%x\n" "$index"
-	diff --color=always -y --suppress-common-lines <(xz -d < pcman.img.xz | dd bs=1 count=$size status=none | xxd) <(xxd pcman.bin) | sed -E s'/ \|\t/\n/'
+	diff --color=always -y -W $COLUMNS --suppress-common-lines <(xz -d < pcman.img.xz | dd bs=1 count=$size status=none | xxd) <(xxd pcman.bin) | sed -E s'/ \|\t/\n/'
 fi
