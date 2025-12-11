@@ -564,7 +564,9 @@ l1606:		call	l22C4			; 00001606 E8BB0C
 l1609:		call	l2278			; 00001609 E86C0C
 l160C:		mov	ax,[6f1h]			; 0000160C A1F106
 l160F:		inc	ax			; 0000160F 40
-l1610:		cmp	ax,0ch			; 00001610 3D0C00
+l1610:		;cmp	ax,0ch			; 00001610 3D0C00
+		db	3dh
+		dw	0ch
 l1613:		jng	l1618			; 00001613 7E03
 l1615:		mov	ax,0ch			; 00001615 B80C00
 l1618:		mov	[6f1h],ax			; 00001618 A3F106
@@ -812,7 +814,9 @@ l184F:		mov	cl,[2a35h]			; 0000184F 8A0E352A
 l1853:		mov	ch,0			; 00001853 B500
 l1855:		mov	ax,cx			; 00001855 8BC1
 l1857:		neg	ax			; 00001857 F7D8
-l1859:		add	ax,0eh			; 00001859 050E00
+l1859:		;add	ax,0eh			; 00001859 050E00
+		db	5
+		dw	0eh
 l185C:		shl	ax,1			; 0000185C D1E0
 l185E:		shl	ax,1			; 0000185E D1E0
 l1860:		jcxz	l186a			; 00001860 E308
@@ -1023,7 +1027,9 @@ l1A73:		add	al,[2a30h]			; 00001A73 0206302A
 l1A77:		mov	[2a30h],al			; 00001A77 A2302A
 l1A7A:		jmp	l1a84			; 00001A7A EB08
 l1A7C:		nop				; 00001A7C 90
-l1A7D:		sub	ax,5			; 00001A7D 2D0500
+l1A7D:		;sub	ax,5			; 00001A7D 2D0500
+		db	2dh
+		dw	5
 l1A80:		add	[2a31h],al			; 00001A80 0006312A
 l1A84:		mov	al,[2cc9h]			; 00001A84 A0C92C
 l1A87:		inc	al			; 00001A87 FEC0
@@ -1145,9 +1151,13 @@ l1BCB:		shl	ax,1			; 00001BCB D1E0
 l1BCD:		shl	ax,1			; 00001BCD D1E0
 l1BCF:		neg	ax			; 00001BCF F7D8
 l1BD1:		add	ax,0cfh			; 00001BD1 05CF00
-l1BD4:		cmp	ax,0			; 00001BD4 3D0000
+l1BD4:		;cmp	ax,0			; 00001BD4 3D0000
+		db	3dh
+		dw	0
 l1BD7:		jl	l1be4			; 00001BD7 7C0B
-l1BD9:		cmp	ax,0eh			; 00001BD9 3D0E00
+l1BD9:		;cmp	ax,0eh			; 00001BD9 3D0E00
+		db	3dh
+		dw	0eh
 l1BDC:		jng	l1be7			; 00001BDC 7E09
 l1BDE:		mov	ax,0eh			; 00001BDE B80E00
 l1BE1:		jmp	l1be7			; 00001BE1 EB04
@@ -1291,7 +1301,9 @@ l1D31:		mov	si,2161h			; 00001D31 BE6121
 l1D34:		mov	cx,4			; 00001D34 B90400
 l1D37:		call	l1F10			; 00001D37 E8D601
 l1D3A:		mov	si,[2ccah]			; 00001D3A 8B36CA2C
-l1D3E:		and	si,2			; 00001D3E 81E60200
+l1D3E:		;and	si,2			; 00001D3E 81E60200
+		dw	0e681h
+		dw	2
 l1D42:		shl	si,1			; 00001D42 D1E6
 l1D44:		shl	si,1			; 00001D44 D1E6
 l1D46:		add	si,2171h			; 00001D46 81C67121
@@ -1325,7 +1337,9 @@ l1D8B:		rcl	ax,1			; 00001D8B D1D0
 l1D8D:		mov	ax,0			; 00001D8D B80000
 l1D90:		rcl	ax,1			; 00001D90 D1D0
 l1D92:		jmp	l1eff			; 00001D92 E96A01
-l1D95:		cmp	ax,0ffe2h			; 00001D95 3DE2FF
+l1D95:		;cmp	ax,-1eh			; 00001D95 3DE2FF
+		db	3dh
+		dw	-1eh
 l1D98:		jna	l1d9f			; 00001D98 7605
 l1D9A:		mov	al,3			; 00001D9A B003
 l1D9C:		jmp	l1eff			; 00001D9C E96001
@@ -1384,8 +1398,12 @@ l1E2B:		mov	al,[2d26h]			; 00001E2B A0262D
 l1E2E:		mov	[2d29h],al			; 00001E2E A2292D
 l1E31:		mov	dl,[bx+2a38h]			; 00001E31 8A97382A
 l1E35:		mov	cl,dl			; 00001E35 8ACA
-l1E37:		xor	cx,1			; 00001E37 81F10100
-l1E3B:		and	cx,1			; 00001E3B 81E10100
+l1E37:		;xor	cx,1			; 00001E37 81F10100
+		dw	0f181h
+		dw	1
+l1E3B:		;and	cx,1			; 00001E3B 81E10100
+		dw	0e181h
+		dw	1
 l1E3F:		cmp	dl,6			; 00001E3F 80FA06
 l1E42:		jl	l1e4c			; 00001E42 7C08
 l1E44:		mov	byte ptr [2d29h],0x3c			; 00001E44 C606292D3C
@@ -1438,7 +1456,9 @@ l1EC4:		xor	ah,20h			; 00001EC4 80F420
 l1EC7:		test	ax,0fffeh			; 00001EC7 A9FEFF
 l1ECA:		jz	l1ed0			; 00001ECA 7404
 l1ECC:		shl	byte ptr [di+2d2ah],1			; 00001ECC D0A52A2D
-l1ED0:		xor	di,1			; 00001ED0 81F70100
+l1ED0:		;xor	di,1			; 00001ED0 81F70100
+		dw	0f781h
+		dw	1
 l1ED4:		mov	byte ptr [di+2d2ah],0			; 00001ED4 C6852A2D00
 l1ED9:		mov	cx,4			; 00001ED9 B90400
 l1EDC:		mov	bp,0			; 00001EDC BD0000
@@ -1578,7 +1598,9 @@ l2011:		mov	byte ptr [2f44h],3			; 00002011 C606442F03
 l2016:		mov	di,2f45h			; 00002016 BF452F
 l2019:		mov	ax,[6f1h]			; 00002019 A1F106
 l201C:		dec	ax			; 0000201C 48
-l201D:		cmp	ax,8			; 0000201D 3D0800
+l201D:		;cmp	ax,8			; 0000201D 3D0800
+		db	3dh
+		dw	8
 l2020:		jl	l202f			; 00002020 7C0D
 l2022:		call	l1F01			; 00002022 E8DCFE
 l2025:		mov	al,0			; 00002025 B000
@@ -1724,7 +1746,9 @@ l216F:		int	16h			; 0000216F CD16
 l2171:		jz	l21cf			; 00002171 745C
 l2173:		mov	ah,0			; 00002173 B400
 l2175:		int	16h			; 00002175 CD16
-l2177:		cmp	ax,0			; 00002177 3D0000
+l2177:		;cmp	ax,0			; 00002177 3D0000
+		db	3dh
+		dw	0
 l217A:		jz	l216a			; 0000217A 74EE
 l217C:		cmp	al,13h			; 0000217C 3C13
 l217E:		jnz	l2184			; 0000217E 7504
@@ -1811,7 +1835,9 @@ l222C:		rcl	ax,1			; 0000222C D1D0
 l222E:		rcl	dx,1			; 0000222E D1D2
 l2230:		rcl	ax,1			; 00002230 D1D0
 l2232:		inc	ax			; 00002232 40
-l2233:		and	ax,3			; 00002233 250300
+l2233:		;and	ax,3			; 00002233 250300
+		db	25h
+		dw	3
 l2236:		mov	[2cbch],al			; 00002236 A2BC2C
 l2239:		ret				; 00002239 C3
 l223A:		push	es			; 0000223A 06
