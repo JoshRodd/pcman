@@ -33,7 +33,7 @@ _DATA_IMG	segment	at 0fdh	; 14Eh - (4E0h / 16) - (30h / 16)
 _DATA_IMG	ends
 
 _data_offset	equ	0fdh-04eh
-_booter_size	equ	40h
+_booter_size	equ	70h
 
 CGA_FB		segment	at 0b800h
 even_lines	db	1f40h dup (?)
@@ -73,46 +73,82 @@ _BOOTSECT	segment	para public 'CODE'
 
 _bootstrap	proc	far
 
-l1:		;jnc	l1
+l1:		;jnc	l1			; Breakpoint for MartyPC
+		nop
+		nop
+
+		; Establish the stack.
 		xor	dx,dx
 		mov	ss,dx
 		assume	ss:_IVT
 		mov	sp,offset stack1_top
-		mov	ax,_LOAD_TRACKS
+
+		; Perform setup.
+		mov	si,offset equip_list	; Obtain low word of equipment list
+		lodsb	ss:[si]
+		and	al,0xcf			; Clear bits 4 & 5 (game adapter & unused bit)
+		or	al,0x20			; Set bit 5 (force initial video mode to CGA 80x25)
+		mov	ss:[si],al		; Override equipment list
+		mov	al,4fh			; Prepare speaker port
+		out	61h,al
+		mov	al,0b6h
+		out	43h,al
+		mov	ax,4			; Set video mode
+		int	10h
+		mov	dx,3d9h			; Change palette
+		mov	al,10h
+		out	dx,al
+		mov	dl,3			; Pause for 3 ticks
+
+		; Load 16K of code and data.
+		mov	ax,_LOAD_TRACKS		; Set ES:BX to _LOAD_TRACKS:3000h
 		mov	es,ax
-		mov	ds,ax
 		assume	es:_LOAD_TRACKS
 		mov	bx,offset track4
-		;xor	dx,dx
-		mov	cx,301h			; Start on track 3.
-load_track:	mov	ax,208h			; Load 8 sectors.
+		xor	dx,dx			; Drive A:, first side
+		mov	cx,301h			; Start on track 3, sector 1.
+load_track:	mov	ax,208h			; Load sectors 1 through 8.
 		int	13h
-		jc	load_track
-		sub	bx,track4-track3
-		dec	ch
-		cmp	ch,-1
+		jc	load_track		; Repeatedly retry upon failure
+		sub	bx,track4-track3	; Go down to 2000h, 1000h, then 0.
+		dec	ch			; Go down to track 2, 1, then 0.
+		cmp	ch,-1			; Quit if we've loaded all the tracks.
 		jnz	load_track
 
-		; Relocate 2F40-2F6F to 2F70-302F (30h long)
-;		mov	si,2f40h+1000h
-;		push	si
-;		mov	di,2f70h+1000h
-;		mov	cx,30h/2
-;		push	cx
-;	rep	movsw
-;		; Fill in 2F40-2F6F with zeroes
-;		pop	cx	; CX = 18h
-;		pop	di	; DI = 3F40h
-;		mov	ax,dx	; AX = DX == 0
-;	rep	stosw
+		; Pause for 3 ticks.
+		;call	delay_loop2
+		mov	dl,3
+		mov	ax,offset delay_loop2_end
+		push	ax
 
-		db	0eah	; jmp _TEXT:bootstrap3
-		dw	0
-		dw	(_LOAD_TRACKS_SEG) + (_booter_size / 16)	; _LOAD_TRACKS + ((_bootsect_top - _bootstrap) / 16)
+		; Delay loop. Does a CX=0 LOOP $ repeated DL times.
+delay_loop2	proc
+		xor	cx,cx
+		loop	$
+		dec	dl
+		jnz	delay_loop2
+		ret
+delay_loop2	endp
+delay_loop2_end	label	near
+
+		; Finish setup.
+		mov	ax,CGA_FB		; Set ES to CGA.
+		mov	es,ax
+
+		; Compute DS.
+		;mov	ax,cs			; Compute DS.
+		;add	ax,_data_offset-(_booter_size/16)
+		mov	ax,(_LOAD_TRACKS_SEG) + _data_offset
+		mov	ds,ax
+		assume	ds:_DATA
+
+		; Jump to the main program.
+		;jmp	_TEXT:bootstrap3
+		db	0eah
+		dw	30h
+		dw	(_LOAD_TRACKS_SEG) + (_booter_size / 16) - (30h / 16)	; _LOAD_TRACKS + ((_bootsect_top - _bootstrap) / 16)
 
 _bootstrap	endp
-
-		db	7 dup (90h)
 
 		align	16
 
@@ -122,66 +158,18 @@ _BOOTSECT	ends
 
 _TEXT		segment	para public 'CODE'
 
-		assume	cs:_TEXT,ds:_LOAD_TRACKS,es:_LOAD_TRACKS,ss:_IVT
+		assume	cs:_TEXT,ds:_DATA,es:CGA_FB,ss:_IVT
 		org	0
 
 bootstrap3	proc	near
 
+		;db	33h dup (90h)
+		org	30h
+		;db	3 dup (90h)
+		nop
+l2:		;jnc	l2
 		nop
 		nop
-;l1:		jnc	l1
-
-		; Push DS:0 onto stack. DS is 0, so effectively pushes a dword of 0.
-l1400:		;push	ds			; 00001400 1E
-l1401:		;xor	ax,ax			; 00001401 33C0
-		;dw	0c033h
-l1403:		;push	ax			; 00001403 50
-		; Set DS:SI to 0000:0410 (0040:0010). Setting DS is redundant.
-l1404:		;mov	ds,ax			; 00001404 8ED8
-		;assume	ds:_IVT
-l1406:		mov	di,offset equip_list	; 00001406 BF1004
-
-		; Obtain low word of equipment list
-l1409:		mov al,ss:[di]			; 00001409 8A05
-
-		; Clear bits 4 & 5 (game adapter & unused bit)
-l140B:		and al,0xcf			; 0000140B 24CF
-
-		; Set bit 5 (force initial video mode to CGA 80x25)
-l140D:		or al,0x20			; 0000140D 0C20
-l140F:		mov ss:[di],al			; 0000140F 8805
-
-		; Change DS to 05C1
-l1411:		;mov ax,_DATA_IMG		; 00001411 B8C105
-l1414:		;mov ds,ax			; 00001414 8ED8
-		; Relocate instead to get DS.
-		push	cs
-		pop	ax
-		add	ax,_data_offset-(_booter_size/16)
-		mov	ds,ax
-
-		; Set ES to CGA
-l1416:		mov ax,CGA_FB			; 00001416 B800B8
-l1419:		mov es,ax			; 00001419 8EC0
-
-		; Prepare speaker port
-l141B:		mov	al,4fh			; 0000141B B04F
-l141D:		out	61h,al			; 0000141D E661
-l141F:		mov	al,0b6h			; 0000141F B0B6
-l1421:		out	43h,al			; 00001421 E643
-
-		; Set video mode
-l1423:		mov	ax,4			; 00001423 B80400
-l1426:		int	10h			; 00001426 CD10
-
-		; Change palette
-l1428:		mov	dx,3d9h			; 00001428 BAD903
-l142B:		mov	al,10h			; 0000142B B010
-l142D:		out	dx,al			; 0000142D EE
-l142E:		mov	dl,3			; 0000142E B203
-
-		; Pause
-l1430:		call	delay_loop		; 00001430 E8EE00
 
 		; Display logo
 ;l1433:		mov	di,150h			; 00001433 BF5001
@@ -245,7 +233,9 @@ music_done:
 		nop
 		; Delay 3 ticks
 l149D:		mov	dl,3			; 0000149D B203
-l149F:		call	delay_loop		; 0000149F E87F00
+l149F:		;call	delay_loop		; 0000149F E87F00
+		nop
+l3:		jnc	l3
 		; Print 5 messages at 5 different locations
 l14A2:		mov	cx,5			; 000014A2 B90500
 l14A5:		mov	si,offset intro_message	; 000014A5 BEF805
@@ -257,6 +247,7 @@ l14AA:		mov	dx,ax			; 000014AA 8BD0
 l14AC:		mov	bh,0			; 000014AC B700
 l14AE:		mov	ah,2			; 000014AE B402
 l14B0:		int	10h			; 000014B0 CD10
+next_char:
 l14B2:		lodsb				; 000014B2 AC
 l14B3:		cmp	al,0			; 000014B3 3C00
 l14B5:		jz	msg_done		; 000014B5 7409
@@ -264,7 +255,7 @@ l14B5:		jz	msg_done		; 000014B5 7409
 l14B7:		mov	bx,2			; 000014B7 BB0200
 l14BA:		mov	ah,0eh			; 000014BA B40E
 l14BC:		int	10h			; 000014BC CD10
-l14BE:		jmp	l14b2			; 000014BE EBF2
+l14BE:		jmp	next_char		; 000014BE EBF2
 msg_done:
 l14C0:		loop	next_msg		; 000014C0 E2E6
 l14C2:		mov	byte ptr [2f8fh],1			; 000014C2 C6068F2F01

@@ -3,7 +3,7 @@
 rm -f pcman.bin pcman.lst pcman.def pcman.sym pcman.err #bits.txt
 #paste <(xxd -c1 pcman.img) <(xxd -c1 -b pcman.img) | sed -E s'/^0000([0-9a-f]{4}): ([0-9a-f]{2})  .\t[0-9a-f]{8}: ([01]{8})  (.)$$/l\1\t\tdb\t0\2h\t; \3b \4 \1 \2/' > bits.txt
 uasm -Flpcman.lst -Fdpcman.def -bin -Fopcman.bin -Fspcman.sym pcman.asm -Zg 2>&1 || exit
-/opt/martypc/martypc --config_file /opt/martypc/pcman.toml --mount fd:0:/Users/shelli/src/pcmandis/pcman.bin
+/opt/martypc/martypc --config_file /opt/martypc/pcman.toml --mount fd:0:/Users/shelli/src/pcmandis/pcman.bin --debug-mode
 exit 0
 size1=$(xz -d < pcman.img.xz | wc -c | tr -dc '0-9\n') || exit
 size2=$(wc -c < pcman.bin | tr -dc '0-9\n') || exit

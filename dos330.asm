@@ -38,10 +38,11 @@ dl_disk			db	0	; A:	; 07c1e 00
 dh_head			db	0		; 07c1f 00
 			db	10 dup (0)	; 07c20 00 X0B
 b7c2a			db	0		; 07c2a 00
-b7c2b			dw	0		; 07c2b 0000
-b7c2d			db	0		; 07c2d 00
-b7c2e			db	0		; 07c2e 00
-b7c2f			db	12h		; 07c2f 12
+		; Loads from here.
+b7c2b			dw	0 ;bytes/sctr	; 07c2b 0000
+b7c2d			db	0 ;ignore	; 07c2d 00
+b7c2e			db	0 ;ignore	; 07c2e 00
+b7c2f			db	18		; 07c2f 12
 			dw	2 dup (0)	; 07c30 00000000
 b7c34			dw	1		; 07c34 01
 
@@ -60,12 +61,14 @@ d7c3f		label	word
 b7c3f:		pop	es		; 07c3f 07
 		assume	es:_BOOTSECT
 b7c40:		mov	bx,offset _int_1eh_v		; 07c40 BB7800
+		; Get BPB vector
 b7c43:		lds	si,dword ptr ss:[bx]		; 07c43 36C537
 b7c46:		push	ds		; 07c46 1E
 b7c47:		push	si		; 07c47 56
 b7c48:		push	ss		; 07c48 16
 b7c49:		push	bx		; 07c49 53
 b7c4a:		mov	di,offset b7c2b		; 07c4a BF2B7C
+		; Load BPB and copy to 07c2b - 07c35
 b7c4d:		mov	cx,0bh		; 07c4d B90B00
 b7c50:		cld			; 07c50 FC
 b7c51:		lodsb			; 07c51 AC
@@ -75,9 +78,11 @@ b7c58:		mov	al,es:[di]		; 07c58 268A05
 b7c5b:		stosb			; 07c5b AA
 b7c5c:		mov	al,ah		; 07c5c 8AC4
 b7c5e:		loop	b7c51		; 07c5e E2F1
+		; DS=ES(=CS=SS=0)
 b7c60:		push	es		; 07c60 06
 b7c61:		pop	ds		; 07c61 1F
 		assume	ds:_BOOTSECT
+		; Use our own BPB
 b7c62:		mov	[bx+2],ax		; 07c62 894702
 b7c65:		mov	word ptr [bx],offset b7c2b		; 07c65 C7072B7C
 b7c69:		sti			; 07c69 FB
